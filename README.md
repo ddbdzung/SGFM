@@ -1,7 +1,8 @@
 # Simple Group Finance Management
 
 ## Description
-A simple web app that used for a small group to manage expenses of each members conveniently
+A simple app that used for a small group to manage expenses of each members conveniently
+This is a webAPI server used for backend side of SGFM app
 
 ## Requirement:
 <ul>
