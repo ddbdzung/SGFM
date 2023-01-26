@@ -2,6 +2,7 @@
 
 ## Description
 A simple app that used for a small group to manage expenses of each members conveniently
+<br/>
 This is a webAPI server used for backend side of SGFM app
 
 ## Requirement:
