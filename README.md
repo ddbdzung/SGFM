@@ -16,6 +16,9 @@ Config env file: Remove .template extension path in .env.template file, contact 
 
 `pnpm run dev`
 
+## Contribution
+https://docs.google.com/spreadsheets/d/1B2B8w9dqM5hzfazeaPYGhJtastYuIo2LMMHuWEEC2MY/edit?usp=sharing
+
 ## Demo:
 
 ### [David Dzung Dang](https://www.facebook.com/dzungdang.IT):whale:
