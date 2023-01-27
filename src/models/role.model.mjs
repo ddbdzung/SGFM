@@ -4,7 +4,7 @@ import { permissionArray } from '../config/permissions.mjs'
 const roleSchema = mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    required: [true, 'Tên vai trò không được bỏ trống'],
     trim: true,
     index: {
       unique: true,

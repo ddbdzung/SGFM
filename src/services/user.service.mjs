@@ -1,5 +1,7 @@
 import httpStatus from 'http-status'
 import bcrypt from 'bcrypt'
+import { v4 as uuidv4 } from 'uuid'
+import slugify from 'slugify'
 
 import ApiError from '../helpers/ApiError.mjs'
 import { User } from '../models/user.model.mjs'
@@ -20,12 +22,36 @@ export const hashPassword = password => bcrypt.hashSync(password, bcrypt.genSalt
 export const comparePassword = (pwFromRequest, pwInDb) => bcrypt.compareSync(pwFromRequest, pwInDb)
 
 /**
+ * Get user by user's email
+ * @param {string} email user's email
+ * @returns {object<mongoose>} user
+ */
+export const getUserByEmail = async email => User.findByEmail(email)
+
+/**
  * True when email has been already assigned
  * @param {String} email
  * @returns {Boolean}
  */
 export const isEmailTaken = async email => {
-  const user = await User.findOne({ email })
+  const user = await getUserByEmail(email)
+  return !!user
+}
+
+/**
+ * Get user by user's slug
+ * @param {string} id user's slug
+ * @returns {object<mongoose>} user
+ */
+export const getUserBySlug = async slug => User.findBySlug(slug)
+
+/**
+ * True when email has been already assigned
+ * @param {String} email
+ * @returns {Boolean}
+ */
+export const isDuplicatedSlug = async slug => {
+  const user = await getUserBySlug(slug)
   return !!user
 }
 
@@ -40,8 +66,13 @@ export const createUser = async doc => {
     throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken')
   }
 
+  // Generate unique slug for duplicating fullname of users
+  const slug = slugify(doc.fullname, { lower: true })
   const cleanDoc = {
     ...doc,
+    slug: ((await Promise.resolve(isDuplicatedSlug(slug))) === true)
+      ? `${slug}-${uuidv4()}`
+      : slug,
     password: hashPassword(doc.password),
   }
   return User.create(cleanDoc)
@@ -68,10 +99,3 @@ export const updateUserById = async (id, update) => User.findByIdAndUpdate(id, u
  * @returns {Boolean} True: Password match
  */
 export const isPasswordMatch = (user, password) => comparePassword(password, user.password)
-
-/**
- * Get user by user's email
- * @param {string} email user's email
- * @returns {object<mongoose>} user
- */
-export const getUserByEmail = async email => User.findOne({ email })

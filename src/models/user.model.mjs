@@ -1,24 +1,36 @@
 import mongoose from 'mongoose'
-import slugify from 'slugify'
+import validator from 'validator'
 
 import { role, gender, status } from '../constants/index.mjs'
+
+const viNameRegex = /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂẾưăạảấầẩẫậắằẳẵặẹẻẽềềểếỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ,.'-\s|_]+$/
 
 const userSchema = mongoose.Schema({
   fullname: {
     type: String,
-    required: true,
+    required: [true, 'Tên không được bỏ trống'],
     trim: true,
+    maxLength: [35, 'Tên không được có độ dài quá 35 kí tự'],
+    validate: {
+      validator: value => viNameRegex.test(value),
+      message: () => 'Tên chỉ được chứa kí tự chữ cái thường, hoa và các kí tự ,.\'-_',
+    },
   },
   email: {
     type: String,
-    required: true,
+    required: [true, 'Email không được bỏ trống'],
     trim: true,
+    index: true,
+    validate: {
+      validator: value => validator.isEmail(value),
+      message: props => `${props.value} không phải là email hợp lệ`,
+    },
   },
   password: {
     type: String,
-    required: true,
+    required: [true, 'Mật khẩu không được bỏ trống'],
     trim: true,
-    minLength: [8, 'Password must be at least 8 characters'],
+    minLength: [8, 'Mật khẩu phải chứa ít nhất 8 kí tự'],
     private: true,
   },
   // Used in find account API to send reset pw code by email
@@ -27,7 +39,7 @@ const userSchema = mongoose.Schema({
   },
   resetPwCode: {
     type: String,
-    length: [6, 'reset password code length must be 6'],
+    length: [6, 'Mã OTP để khôi phục mật khẩu phải chính xác 6 kí tự'],
   },
   resetPwToken: {
     type: String,
@@ -41,16 +53,20 @@ const userSchema = mongoose.Schema({
     type: Number,
     default: 0,
     min: 0,
-    max: [5, 'limit max requests'],
+    max: [5, 'Giới hạn 5 lần nhập mã sai'],
   },
   // username: Dang Duc Bao Dzung => slug: Dang-Duc-Bao-Dung
   slug: {
     type: String,
+    index: true,
   },
   status: {
     type: String,
     default: status.INACTIVE,
-    enum: Object.values(status),
+    enum: {
+      values: Object.values(status),
+      message: '{VALUE} không được hỗ trợ',
+    },
   },
   // Created when user validates account
   activateToken: {
@@ -58,20 +74,27 @@ const userSchema = mongoose.Schema({
   },
   address: {
     type: String,
-    minLength: [30, 'Address must be longer than 30 characters'],
+    minLength: [16, 'Địa chỉ phải dài hơn 16 kí tự'],
+    maxLength: [255, 'Địa chỉ phải nhỏ hơn 256 kí tự'],
   },
   phoneNumber: {
     type: String,
-    maxLength: [11, 'Phone number must be shorter than 12 characters'],
+    maxLength: [11, 'Số điện thoại phải nhỏ hơn 12 kí tự'],
   },
   gender: {
     type: String,
-    enum: Object.values(gender),
+    enum: {
+      values: Object.values(gender),
+      message: '{VALUE} không được hỗ trợ',
+    },
   },
   // Populate to role model by role name
   role: {
     type: String,
-    enum: role.roleArr,
+    enum: {
+      values: role.roleArr,
+      message: '{VALUE} không được hỗ trợ',
+    },
     default: role.USER,
   },
 }, {
@@ -108,8 +131,16 @@ userSchema.methods.rolePopulating = async function (projection) {
   return userPopulate;
 };
 
+userSchema.statics.findBySlug = function (slug) {
+  return this.findOne({ slug })
+}
+
+userSchema.statics.findByEmail = function (email) {
+  return this.findOne({ email })
+}
+
 userSchema.pre('save', async function (next) {
-  this.slug = slugify(this.fullname, { lower: true })
+  this.email = validator.normalizeEmail(this.email)
   next()
 })
 
