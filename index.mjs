@@ -23,7 +23,7 @@ const options = {
   useUnifiedTopology: true,
 }
 
-const port = +process.env.PORT || 2703
+const port = +process.env.PORT || 923
 let server
 
 const serverErrorHandler = (error) => {
