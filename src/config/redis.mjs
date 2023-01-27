@@ -10,6 +10,7 @@ const redisClient = async () => {
     })
     client.on('error', err => {
       logger.error(err)
+      logger.error('Fail to connect to redis server')
       client.disconnect()
     })
     client.on('ready', () => {
