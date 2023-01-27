@@ -15,7 +15,9 @@ mongoose.set('strictQuery', false)
 if (process.env.NODE_ENV === 'development') {
   uri = `mongodb://127.0.0.1:27017/${databaseName}`
 } else if (process.env.NODE_ENV === 'production') {
-  uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@demo-extension-pems.zeqcit3.mongodb.net/?retryWrites=true&w=majority`
+  uri = (process.env?.IS_LOCAL_PROD)
+    ? `mongodb://127.0.0.1:27017/${databaseName}`
+    : `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@${databaseName}.${process.env.DB_SALT_STRING}.mongodb.net/?retryWrites=true&w=majority`
 }
 // Set up your options to MongoDB, default is below
 const options = {
@@ -23,7 +25,7 @@ const options = {
   useUnifiedTopology: true,
 }
 
-const port = +process.env.PORT || 2703
+const port = +process.env.PORT || 923
 let server
 
 const serverErrorHandler = (error) => {
